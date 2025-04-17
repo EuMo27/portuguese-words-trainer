@@ -4,26 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Мои слова на португальском</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="manifest" href="/manifest.json">
   <style>
     * { box-sizing: border-box; }
     body {
       font-family: 'Roboto', sans-serif;
-      background: linear-gradient(to right, #f0f2f5, #e6f7ff);
+      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
       margin: 0;
       padding: 0;
       transition: background 0.3s ease, color 0.3s ease;
     }
     body.dark-mode {
-      background: #333333;
-      color: white;
+      background: #2e2e2e;
+      color: #d1d1d1;
     }
     h1 {
       text-align: center;
-      color: #007bff;
+      color: #3b82f6;
       margin-top: 30px;
-      font-size: 36px;
+      font-size: 40px;
+      font-family: 'Montserrat', sans-serif;
     }
     .container {
       max-width: 900px;
@@ -43,9 +44,10 @@
     }
     h2 {
       text-align: center;
-      color: #333333;
+      color: #444444;
       font-size: 24px;
       margin-bottom: 20px;
+      font-family: 'Montserrat', sans-serif;
     }
     input, select, button {
       width: 100%;
@@ -54,16 +56,17 @@
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 16px;
+      font-family: 'Roboto', sans-serif;
     }
     button {
-      background-color: #007bff;
+      background-color: #3b82f6;
       color: white;
       border: none;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
     button:hover {
-      background-color: #0056b3;
+      background-color: #2563eb;
     }
     .dark-mode button {
       background-color: #444444;
@@ -82,10 +85,10 @@
     }
     .search-container button {
       width: 25%;
-      background-color: #28a745;
+      background-color: #10b981;
     }
     .search-container button:hover {
-      background-color: #218838;
+      background-color: #059669;
     }
     #wordCanvas {
       width: 100%;
@@ -106,6 +109,26 @@
     }
     .test-feedback.hint {
       color: #333;
+    }
+    .test-area {
+      display: none;
+      margin-top: 15px;
+    }
+    .test-area input {
+      margin-bottom: 10px;
+    }
+    .next-btn {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .next-btn:hover {
+      background-color: #2563eb;
     }
   </style>
 </head>
@@ -144,14 +167,14 @@
         <option value="ru-pt">Русский → Португальский</option>
       </select>
       <button onclick="startTest()">▶️ Начать</button>
-      <div id="testArea" style="margin-top: 15px; display: none;">
+      <div class="test-area" id="testArea">
         <div id="questionText" style="margin-bottom: 10px; font-size: 18px; font-weight: bold;"></div>
         <input type="text" id="answerInput" placeholder="Введите перевод">
         <button onclick="checkAnswer()">Проверить</button>
         <button onclick="showHint()">🔍 Подсказка</button>
         <button onclick="speakWord()">🔊 Произнести</button>
         <div class="test-feedback" id="feedback"></div>
-        <button onclick="nextQuestion()" style="display:none" id="nextBtn">Следующее слово</button>
+        <button class="next-btn" onclick="nextQuestion()" id="nextBtn">Следующее слово</button>
       </div>
     </div>
   </div>
@@ -269,24 +292,12 @@
     }
 
     function speakWord() {
-      const text = testDirection === 'pt-ru' ? currentQuestion.pt : currentQuestion.ru;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = testDirection === 'pt-ru' ? 'pt-PT' : 'ru-RU';
+      const utter = new SpeechSynthesisUtterance(currentQuestion.pt);
+      utter.lang = testDirection === 'pt-ru' ? 'pt-BR' : 'ru-RU';
       speechSynthesis.speak(utter);
     }
 
     renderWords();
-  </script>
-
-  <!-- Manifest for PWA -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then(function(registration) {
-        console.log('Service Worker registered with scope:', registration.scope);
-      }).catch(function(error) {
-        console.log('Service Worker registration failed:', error);
-      });
-    }
   </script>
 </body>
 </html>
