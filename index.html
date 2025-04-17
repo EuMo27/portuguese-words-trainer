@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои слова на португальском</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      background-color: #f9f9f9;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .word-form, .test-section {
+      margin-bottom: 30px;
+      padding: 15px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    .test-feedback {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-group button {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Мои слова на португальском</h1>
+
+  <div class="word-form">
+    <h2>Добавить слово</h2>
+    <input type="text" id="ptWord" placeholder="Португальское слово">
+    <input type="text" id="ruWord" placeholder="Перевод на русский">
+    <button onclick="addWord()">Добавить</button>
+  </div>
+
+  <div>
+    <h2>Список слов</h2>
+    <table id="wordsTable">
+      <thead>
+        <tr>
+          <th>🇵🇹 Португальский</th>
+          <th>🇷🇺 Перевод</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="test-section">
+    <h2>Тестирование</h2>
+    <select id="testMode">
+      <option value="pt-ru">Португальский → Русский</option>
+      <option value="ru-pt">Русский → Португальский</option>
+    </select>
+    <button onclick="startTest()">Начать</button>
+    <div id="testArea" style="margin-top: 15px; display: none;">
+      <div id="questionText" style="margin-bottom: 10px;"></div>
+      <input type="text" id="answerInput" placeholder="Введите перевод">
+      <button onclick="checkAnswer()">Ответить</button>
+      <div class="test-feedback" id="feedback"></div>
+      <button onclick="nextQuestion()" style="display:none" id="nextBtn">Следующее слово</button>
+    </div>
+  </div>
+
+  <script>
+    let words = JSON.parse(localStorage.getItem('words') || '[]');
+    let currentQuestion = null;
+    let testDirection = 'pt-ru';
+
+    function saveWords() {
+      localStorage.setItem('words', JSON.stringify(words));
+      renderWords();
+    }
+
+    function addWord() {
+      const pt = document.getElementById('ptWord').value.trim();
+      const ru = document.getElementById('ruWord').value.trim();
+      if (pt && ru) {
+        words.push({ pt, ru });
+        saveWords();
+        document.getElementById('ptWord').value = '';
+        document.getElementById('ruWord').value = '';
+      }
+    }
+
+    function deleteWord(index) {
+      words.splice(index, 1);
+      saveWords();
+    }
+
+    function renderWords() {
+      const tbody = document.querySelector('#wordsTable tbody');
+      tbody.innerHTML = '';
+      words.forEach((word, i) => {
+        const row = `<tr>
+          <td>${word.pt}</td>
+          <td>${word.ru}</td>
+          <td><button onclick="deleteWord(${i})">Удалить</button></td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function startTest() {
+      if (words.length === 0) return;
+      testDirection = document.getElementById('testMode').value;
+      document.getElementById('testArea').style.display = 'block';
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      currentQuestion = words[Math.floor(Math.random() * words.length)];
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('answerInput').value = '';
+      document.getElementById('nextBtn').style.display = 'none';
+      document.getElementById('answerInput').style.display = 'block';
+
+      const q = testDirection === 'pt-ru' ? currentQuestion.pt : currentQuestion.ru;
+      document.getElementById('questionText').textContent = `Переведите: ${q}`;
+    }
+
+    function checkAnswer() {
+      const userAnswer = document.getElementById('answerInput').value.trim().toLowerCase();
+      const correct = testDirection === 'pt-ru' ? currentQuestion.ru.toLowerCase() : currentQuestion.pt.toLowerCase();
+      const feedback = document.getElementById('feedback');
+      if (userAnswer === correct) {
+        feedback.textContent = '✅ Верно!';
+        feedback.style.color = 'green';
+      } else {
+        feedback.textContent = `❌ Неверно. Правильный ответ: ${correct}`;
+        feedback.style.color = 'red';
+      }
+      document.getElementById('nextBtn').style.display = 'inline-block';
+    }
+
+    renderWords();
+  </script>
+</body>
+</html>
