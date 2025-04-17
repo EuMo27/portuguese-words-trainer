@@ -11,35 +11,45 @@
     body {
       font-family: 'Roboto', sans-serif;
       background: linear-gradient(to right, #f0f2f5, #e6f7ff);
-      padding: 20px;
       margin: 0;
+      padding: 0;
       transition: background 0.3s ease, color 0.3s ease;
     }
     body.dark-mode {
-      background: #2f2f2f;
+      background: #333333;
       color: white;
     }
-    h1, h2 {
+    h1 {
       text-align: center;
-      color: #003366;
+      color: #007bff;
+      margin-top: 30px;
+      font-size: 36px;
     }
     .container {
-      max-width: 800px;
-      margin: auto;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
     }
     .card {
       background-color: #ffffff;
       border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       margin-bottom: 30px;
+      transition: background-color 0.3s ease;
     }
     .dark-mode .card {
       background-color: #444444;
     }
+    h2 {
+      text-align: center;
+      color: #333333;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
     input, select, button {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin: 8px 0;
       border: 1px solid #ccc;
       border-radius: 8px;
@@ -70,6 +80,33 @@
     .search-container input {
       width: 70%;
     }
+    .search-container button {
+      width: 25%;
+      background-color: #28a745;
+    }
+    .search-container button:hover {
+      background-color: #218838;
+    }
+    #wordCanvas {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+    }
+    .test-feedback {
+      font-size: 18px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .test-feedback.correct {
+      color: green;
+    }
+    .test-feedback.incorrect {
+      color: red;
+    }
+    .test-feedback.hint {
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -95,6 +132,7 @@
       <!-- Фильтрация слов -->
       <div class="search-container">
         <input type="text" id="searchInput" placeholder="Поиск по словам" oninput="filterWords()">
+        <button onclick="clearSearch()">❌ Очистить</button>
       </div>
       <canvas id="wordCanvas" width="800" height="400"></canvas>
     </div>
@@ -143,6 +181,12 @@
           ctx.fillText(`${word.pt} - ${word.ru}`, 10, 30 * (i + 1));
         }
       });
+    }
+
+    // Очистка поиска
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      filterWords();
     }
 
     function saveWords() {
@@ -207,11 +251,11 @@
       const feedback = document.getElementById('feedback');
       if (userAnswer === correct) {
         feedback.textContent = '✅ Верно!';
-        feedback.style.color = 'green';
+        feedback.className = 'test-feedback correct';
         scores[currentQuestion.pt] = (scores[currentQuestion.pt] || 0) + 1;
       } else {
         feedback.textContent = `❌ Неверно. Правильный ответ: ${correct}`;
-        feedback.style.color = 'red';
+        feedback.className = 'test-feedback incorrect';
         scores[currentQuestion.pt] = Math.max(0, (scores[currentQuestion.pt] || 0) - 1);
       }
       saveWords();
@@ -221,7 +265,7 @@
     function showHint() {
       const answer = testDirection === 'pt-ru' ? currentQuestion.ru : currentQuestion.pt;
       document.getElementById('feedback').textContent = `🔍 Первая буква: ${answer[0]}`;
-      document.getElementById('feedback').style.color = '#333';
+      document.getElementById('feedback').className = 'test-feedback hint';
     }
 
     function speakWord() {
