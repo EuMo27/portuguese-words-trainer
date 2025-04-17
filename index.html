@@ -5,15 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Мои слова на португальском</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="/manifest.json">
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Roboto', sans-serif;
       background: linear-gradient(to right, #f0f2f5, #e6f7ff);
       padding: 20px;
       margin: 0;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    body.dark-mode {
+      background: #2f2f2f;
+      color: white;
     }
     h1, h2 {
       text-align: center;
@@ -29,6 +33,9 @@
       padding: 20px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       margin-bottom: 30px;
+    }
+    .dark-mode .card {
+      background-color: #444444;
     }
     input, select, button {
       width: 100%;
@@ -48,32 +55,33 @@
     button:hover {
       background-color: #0056b3;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
+    .dark-mode button {
+      background-color: #444444;
     }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ddd;
-      text-align: left;
+    .dark-mode button:hover {
+      background-color: #333333;
     }
-    th {
-      background-color: #007bff;
-      color: white;
+    .search-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
     }
-    .test-feedback {
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    #nextBtn {
-      margin-top: 10px;
+    .search-container input {
+      width: 70%;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>📘 Мои слова на португальском</h1>
+
+    <!-- Переключатель темы -->
+    <div style="text-align: right;">
+      <label>
+        <input type="checkbox" id="themeSwitch"> Тёмная тема
+      </label>
+    </div>
 
     <div class="card">
       <h2>Добавить слово</h2>
@@ -84,16 +92,11 @@
 
     <div class="card">
       <h2>Список слов</h2>
-      <table id="wordsTable">
-        <thead>
-          <tr>
-            <th>🇵🇹 Португальский</th>
-            <th>🇷🇺 Перевод</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <!-- Фильтрация слов -->
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Поиск по словам" oninput="filterWords()">
+      </div>
+      <canvas id="wordCanvas" width="800" height="400"></canvas>
     </div>
 
     <div class="card">
@@ -107,6 +110,8 @@
         <div id="questionText" style="margin-bottom: 10px; font-size: 18px; font-weight: bold;"></div>
         <input type="text" id="answerInput" placeholder="Введите перевод">
         <button onclick="checkAnswer()">Проверить</button>
+        <button onclick="showHint()">🔍 Подсказка</button>
+        <button onclick="speakWord()">🔊 Произнести</button>
         <div class="test-feedback" id="feedback"></div>
         <button onclick="nextQuestion()" style="display:none" id="nextBtn">Следующее слово</button>
       </div>
@@ -117,9 +122,32 @@
     let words = JSON.parse(localStorage.getItem('words') || '[]');
     let currentQuestion = null;
     let testDirection = 'pt-ru';
+    let scoresMap = localStorage.getItem('scores');
+    let scores = scoresMap ? JSON.parse(scoresMap) : {};
+
+    // Переключение темы
+    document.getElementById('themeSwitch').addEventListener('change', function() {
+      document.body.classList.toggle('dark-mode', this.checked);
+    });
+
+    // Фильтрация слов
+    function filterWords() {
+      const filter = document.getElementById('searchInput').value.toLowerCase();
+      const canvas = document.getElementById('wordCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      words.forEach((word, i) => {
+        if (word.pt.toLowerCase().includes(filter) || word.ru.toLowerCase().includes(filter)) {
+          ctx.font = "20px Arial";
+          ctx.fillText(`${word.pt} - ${word.ru}`, 10, 30 * (i + 1));
+        }
+      });
+    }
 
     function saveWords() {
       localStorage.setItem('words', JSON.stringify(words));
+      localStorage.setItem('scores', JSON.stringify(scores));
       renderWords();
     }
 
@@ -128,27 +156,21 @@
       const ru = document.getElementById('ruWord').value.trim();
       if (pt && ru) {
         words.push({ pt, ru });
+        scores[pt] = 0;
         saveWords();
         document.getElementById('ptWord').value = '';
         document.getElementById('ruWord').value = '';
       }
     }
 
-    function deleteWord(index) {
-      words.splice(index, 1);
-      saveWords();
-    }
-
     function renderWords() {
-      const tbody = document.querySelector('#wordsTable tbody');
-      tbody.innerHTML = '';
+      const canvas = document.getElementById('wordCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
       words.forEach((word, i) => {
-        const row = `<tr>
-          <td>${word.pt}</td>
-          <td>${word.ru}</td>
-          <td><button onclick="deleteWord(${i})">Удалить</button></td>
-        </tr>`;
-        tbody.innerHTML += row;
+        ctx.font = "20px Arial";
+        ctx.fillText(`${word.pt} - ${word.ru}`, 10, 30 * (i + 1));
       });
     }
 
@@ -159,8 +181,18 @@
       nextQuestion();
     }
 
+    function getWeightedWord() {
+      const weighted = [];
+      words.forEach(word => {
+        const score = scores[word.pt] || 0;
+        const weight = Math.max(1, 5 - score);
+        for (let i = 0; i < weight; i++) weighted.push(word);
+      });
+      return weighted[Math.floor(Math.random() * weighted.length)];
+    }
+
     function nextQuestion() {
-      currentQuestion = words[Math.floor(Math.random() * words.length)];
+      currentQuestion = getWeightedWord();
       document.getElementById('feedback').textContent = '';
       document.getElementById('answerInput').value = '';
       document.getElementById('nextBtn').style.display = 'none';
@@ -176,14 +208,41 @@
       if (userAnswer === correct) {
         feedback.textContent = '✅ Верно!';
         feedback.style.color = 'green';
+        scores[currentQuestion.pt] = (scores[currentQuestion.pt] || 0) + 1;
       } else {
         feedback.textContent = `❌ Неверно. Правильный ответ: ${correct}`;
         feedback.style.color = 'red';
+        scores[currentQuestion.pt] = Math.max(0, (scores[currentQuestion.pt] || 0) - 1);
       }
+      saveWords();
       document.getElementById('nextBtn').style.display = 'inline-block';
     }
 
+    function showHint() {
+      const answer = testDirection === 'pt-ru' ? currentQuestion.ru : currentQuestion.pt;
+      document.getElementById('feedback').textContent = `🔍 Первая буква: ${answer[0]}`;
+      document.getElementById('feedback').style.color = '#333';
+    }
+
+    function speakWord() {
+      const text = testDirection === 'pt-ru' ? currentQuestion.pt : currentQuestion.ru;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = testDirection === 'pt-ru' ? 'pt-PT' : 'ru-RU';
+      speechSynthesis.speak(utter);
+    }
+
     renderWords();
+  </script>
+
+  <!-- Manifest for PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(function(registration) {
+        console.log('Service Worker registered with scope:', registration.scope);
+      }).catch(function(error) {
+        console.log('Service Worker registration failed:', error);
+      });
+    }
   </script>
 </body>
 </html>
