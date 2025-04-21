@@ -1,3 +1,4 @@
+// PortugueseWordsTrainer.jsx
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
@@ -17,6 +18,10 @@ export default function PortugueseWordsTrainer() {
   useEffect(() => {
     const saved = localStorage.getItem("words");
     if (saved) setWords(JSON.parse(saved));
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
   }, []);
 
   useEffect(() => {
@@ -63,7 +68,7 @@ export default function PortugueseWordsTrainer() {
         : w
     );
     setWords(updatedWords);
-    setFeedback(correct ? "Correct! 🎉" : "Incorrect 😢");
+    setFeedback(correct ? "✅ Correct!" : "❌ Incorrect");
     setTimeout(startTest, 1500);
   };
 
@@ -76,9 +81,13 @@ export default function PortugueseWordsTrainer() {
   };
 
   return (
-    <div className={`p-4 max-w-xl mx-auto min-h-screen transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
+    <motion.div
+      className={`p-4 max-w-xl mx-auto min-h-screen transition-colors duration-500 ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Portuguese Words Trainer</h1>
+        <h1 className="text-2xl font-bold">🇵🇹 Portuguese Words Trainer 🇷🇺</h1>
         <label className="flex items-center space-x-2 cursor-pointer">
           <span>🌞</span>
           <input type="checkbox" checked={isDark} onChange={() => setIsDark(!isDark)} />
@@ -113,10 +122,14 @@ export default function PortugueseWordsTrainer() {
 
           <div className="grid gap-2">
             {filteredWords.map((word, i) => (
-              <div key={i} className="flex justify-between border p-2 rounded shadow bg-gray-100 dark:bg-gray-800">
+              <motion.div
+                key={i}
+                className="flex justify-between border p-2 rounded shadow bg-gray-100 dark:bg-gray-800"
+                whileHover={{ scale: 1.02 }}
+              >
                 <span>{word.portuguese}</span>
                 <span>{word.russian}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
 
@@ -176,6 +189,6 @@ export default function PortugueseWordsTrainer() {
           </div>
         </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
