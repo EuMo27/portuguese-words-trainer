@@ -1,8 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 
 export default function PortugueseWordsTrainer() {
@@ -80,33 +76,36 @@ export default function PortugueseWordsTrainer() {
   };
 
   return (
-    <div className="p-4 max-w-xl mx-auto">
+    <div className={`p-4 max-w-xl mx-auto min-h-screen transition-colors ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Portuguese Words Trainer</h1>
-        <div className="flex items-center space-x-2">
+        <label className="flex items-center space-x-2 cursor-pointer">
           <span>🌞</span>
-          <Switch checked={isDark} onCheckedChange={setIsDark} />
+          <input type="checkbox" checked={isDark} onChange={() => setIsDark(!isDark)} />
           <span>🌜</span>
-        </div>
+        </label>
       </div>
 
       {!testMode ? (
         <>
           <div className="flex gap-2 mb-2">
-            <Input
+            <input
+              className="border p-2 flex-1 rounded"
               placeholder="Portuguese"
               value={portuguese}
               onChange={(e) => setPortuguese(e.target.value)}
             />
-            <Input
+            <input
+              className="border p-2 flex-1 rounded"
               placeholder="Russian"
               value={russian}
               onChange={(e) => setRussian(e.target.value)}
             />
-            <Button onClick={addWord}>Add</Button>
+            <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={addWord}>Add</button>
           </div>
-          <Input
-            className="mb-4"
+
+          <input
+            className="mb-4 w-full border p-2 rounded"
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -114,17 +113,19 @@ export default function PortugueseWordsTrainer() {
 
           <div className="grid gap-2">
             {filteredWords.map((word, i) => (
-              <Card key={i} className="bg-muted dark:bg-gray-800">
-                <CardContent className="flex justify-between p-2">
-                  <div>{word.portuguese}</div>
-                  <div>{word.russian}</div>
-                </CardContent>
-              </Card>
+              <div key={i} className="flex justify-between border p-2 rounded shadow bg-gray-100 dark:bg-gray-800">
+                <span>{word.portuguese}</span>
+                <span>{word.russian}</span>
+              </div>
             ))}
           </div>
-          <Button className="mt-4 w-full" onClick={() => {setTestMode(true); startTest();}}>
+
+          <button
+            className="mt-4 w-full bg-green-600 text-white px-4 py-2 rounded"
+            onClick={() => { setTestMode(true); startTest(); }}
+          >
             Start Test Mode
-          </Button>
+          </button>
         </>
       ) : (
         <motion.div
@@ -135,24 +136,29 @@ export default function PortugueseWordsTrainer() {
         >
           <div className="text-lg">
             Translate this word:
-            <span className="block text-2xl font-bold mt-2">
+            <div className="text-2xl font-bold mt-2">
               {currentWord && (showPortuguese ? currentWord.portuguese : currentWord.russian)}
-            </span>
+            </div>
           </div>
-          <Input
+
+          <input
+            className="border p-2 w-full rounded"
             placeholder="Type the translation..."
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
           />
-          <div className="flex gap-2">
-            <Button onClick={checkAnswer}>Check</Button>
-            <Button variant="outline" onClick={() => setHintShown(true)}>Hint</Button>
-            <Button variant="ghost" onClick={speak}>🔊 Speak</Button>
-            <Button variant="destructive" onClick={() => setTestMode(false)}>Exit</Button>
+
+          <div className="flex gap-2 flex-wrap">
+            <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={checkAnswer}>Check</button>
+            <button className="bg-yellow-400 px-4 py-2 rounded" onClick={() => setHintShown(true)}>Hint</button>
+            <button className="bg-purple-500 text-white px-4 py-2 rounded" onClick={speak}>🔊 Speak</button>
+            <button className="bg-red-500 text-white px-4 py-2 rounded" onClick={() => setTestMode(false)}>Exit</button>
           </div>
+
           {hintShown && currentWord && (
             <div>Hint: {showPortuguese ? currentWord.russian[0] : currentWord.portuguese[0]}</div>
           )}
+
           {feedback && (
             <motion.div
               className="text-xl font-semibold"
@@ -162,9 +168,10 @@ export default function PortugueseWordsTrainer() {
               {feedback}
             </motion.div>
           )}
+
           <div className="flex items-center gap-2">
             <span>🇵🇹→🇷🇺</span>
-            <Switch checked={showPortuguese} onCheckedChange={setShowPortuguese} />
+            <input type="checkbox" checked={showPortuguese} onChange={() => setShowPortuguese(!showPortuguese)} />
             <span>🇷🇺→🇵🇹</span>
           </div>
         </motion.div>
