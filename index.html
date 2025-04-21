@@ -1,303 +1,174 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Мои слова на португальском</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="manifest" href="/manifest.json">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Roboto', sans-serif;
-      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
-      margin: 0;
-      padding: 0;
-      transition: background 0.3s ease, color 0.3s ease;
-    }
-    body.dark-mode {
-      background: #2e2e2e;
-      color: #d1d1d1;
-    }
-    h1 {
-      text-align: center;
-      color: #3b82f6;
-      margin-top: 30px;
-      font-size: 40px;
-      font-family: 'Montserrat', sans-serif;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .card {
-      background-color: #ffffff;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      margin-bottom: 30px;
-      transition: background-color 0.3s ease;
-    }
-    .dark-mode .card {
-      background-color: #444444;
-    }
-    h2 {
-      text-align: center;
-      color: #444444;
-      font-size: 24px;
-      margin-bottom: 20px;
-      font-family: 'Montserrat', sans-serif;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-      font-family: 'Roboto', sans-serif;
-    }
-    button {
-      background-color: #3b82f6;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #2563eb;
-    }
-    .dark-mode button {
-      background-color: #444444;
-    }
-    .dark-mode button:hover {
-      background-color: #333333;
-    }
-    .search-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .search-container input {
-      width: 70%;
-    }
-    .search-container button {
-      width: 25%;
-      background-color: #10b981;
-    }
-    .search-container button:hover {
-      background-color: #059669;
-    }
-    #wordCanvas {
-      width: 100%;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background-color: #f9f9f9;
-    }
-    .test-feedback {
-      font-size: 18px;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    .test-feedback.correct {
-      color: green;
-    }
-    .test-feedback.incorrect {
-      color: red;
-    }
-    .test-feedback.hint {
-      color: #333;
-    }
-    .test-area {
-      display: none;
-      margin-top: 15px;
-    }
-    .test-area input {
-      margin-bottom: 10px;
-    }
-    .next-btn {
-      display: none;
-      margin-top: 10px;
-      padding: 10px 20px;
-      background-color: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .next-btn:hover {
-      background-color: #2563eb;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>📘 Мои слова на португальском</h1>
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { motion } from "framer-motion";
 
-    <!-- Переключатель темы -->
-    <div style="text-align: right;">
-      <label>
-        <input type="checkbox" id="themeSwitch"> Тёмная тема
-      </label>
-    </div>
+export default function PortugueseWordsTrainer() {
+  const [words, setWords] = useState([]);
+  const [portuguese, setPortuguese] = useState("");
+  const [russian, setRussian] = useState("");
+  const [search, setSearch] = useState("");
+  const [isDark, setIsDark] = useState(false);
+  const [testMode, setTestMode] = useState(false);
+  const [currentWord, setCurrentWord] = useState(null);
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState("");
+  const [hintShown, setHintShown] = useState(false);
+  const [showPortuguese, setShowPortuguese] = useState(true);
 
-    <div class="card">
-      <h2>Добавить слово</h2>
-      <input type="text" id="ptWord" placeholder="Португальское слово">
-      <input type="text" id="ruWord" placeholder="Перевод на русский">
-      <button onclick="addWord()">➕ Добавить</button>
-    </div>
+  useEffect(() => {
+    const saved = localStorage.getItem("words");
+    if (saved) setWords(JSON.parse(saved));
+  }, []);
 
-    <div class="card">
-      <h2>Список слов</h2>
-      <!-- Фильтрация слов -->
-      <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Поиск по словам" oninput="filterWords()">
-        <button onclick="clearSearch()">❌ Очистить</button>
+  useEffect(() => {
+    localStorage.setItem("words", JSON.stringify(words));
+  }, [words]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
+
+  const addWord = () => {
+    if (portuguese && russian) {
+      const newWords = [...words, { portuguese, russian, errors: 0 }];
+      setWords(newWords);
+      setPortuguese("");
+      setRussian("");
+    }
+  };
+
+  const filteredWords = words.filter(
+    (w) =>
+      w.portuguese.toLowerCase().includes(search.toLowerCase()) ||
+      w.russian.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const startTest = () => {
+    if (words.length === 0) return;
+    const weightedWords = words.flatMap((w) => Array(w.errors + 1).fill(w));
+    const next = weightedWords[Math.floor(Math.random() * weightedWords.length)];
+    setCurrentWord(next);
+    setAnswer("");
+    setFeedback("");
+    setHintShown(false);
+  };
+
+  const checkAnswer = () => {
+    const correct = showPortuguese
+      ? currentWord.russian.toLowerCase() === answer.toLowerCase()
+      : currentWord.portuguese.toLowerCase() === answer.toLowerCase();
+
+    const updatedWords = words.map((w) =>
+      w.portuguese === currentWord.portuguese
+        ? { ...w, errors: correct ? w.errors : w.errors + 1 }
+        : w
+    );
+    setWords(updatedWords);
+    setFeedback(correct ? "Correct! 🎉" : "Incorrect 😢");
+    setTimeout(startTest, 1500);
+  };
+
+  const speak = () => {
+    const utter = new SpeechSynthesisUtterance(
+      showPortuguese ? currentWord.portuguese : currentWord.russian
+    );
+    utter.lang = showPortuguese ? "pt-PT" : "ru-RU";
+    speechSynthesis.speak(utter);
+  };
+
+  return (
+    <div className="p-4 max-w-xl mx-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Portuguese Words Trainer</h1>
+        <div className="flex items-center space-x-2">
+          <span>🌞</span>
+          <Switch checked={isDark} onCheckedChange={setIsDark} />
+          <span>🌜</span>
+        </div>
       </div>
-      <canvas id="wordCanvas" width="800" height="400"></canvas>
+
+      {!testMode ? (
+        <>
+          <div className="flex gap-2 mb-2">
+            <Input
+              placeholder="Portuguese"
+              value={portuguese}
+              onChange={(e) => setPortuguese(e.target.value)}
+            />
+            <Input
+              placeholder="Russian"
+              value={russian}
+              onChange={(e) => setRussian(e.target.value)}
+            />
+            <Button onClick={addWord}>Add</Button>
+          </div>
+          <Input
+            className="mb-4"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <div className="grid gap-2">
+            {filteredWords.map((word, i) => (
+              <Card key={i} className="bg-muted dark:bg-gray-800">
+                <CardContent className="flex justify-between p-2">
+                  <div>{word.portuguese}</div>
+                  <div>{word.russian}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Button className="mt-4 w-full" onClick={() => {setTestMode(true); startTest();}}>
+            Start Test Mode
+          </Button>
+        </>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4 }}
+          className="space-y-4"
+        >
+          <div className="text-lg">
+            Translate this word:
+            <span className="block text-2xl font-bold mt-2">
+              {currentWord && (showPortuguese ? currentWord.portuguese : currentWord.russian)}
+            </span>
+          </div>
+          <Input
+            placeholder="Type the translation..."
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <Button onClick={checkAnswer}>Check</Button>
+            <Button variant="outline" onClick={() => setHintShown(true)}>Hint</Button>
+            <Button variant="ghost" onClick={speak}>🔊 Speak</Button>
+            <Button variant="destructive" onClick={() => setTestMode(false)}>Exit</Button>
+          </div>
+          {hintShown && currentWord && (
+            <div>Hint: {showPortuguese ? currentWord.russian[0] : currentWord.portuguese[0]}</div>
+          )}
+          {feedback && (
+            <motion.div
+              className="text-xl font-semibold"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+            >
+              {feedback}
+            </motion.div>
+          )}
+          <div className="flex items-center gap-2">
+            <span>🇵🇹→🇷🇺</span>
+            <Switch checked={showPortuguese} onCheckedChange={setShowPortuguese} />
+            <span>🇷🇺→🇵🇹</span>
+          </div>
+        </motion.div>
+      )}
     </div>
-
-    <div class="card">
-      <h2>🎓 Тестирование</h2>
-      <select id="testMode">
-        <option value="pt-ru">Португальский → Русский</option>
-        <option value="ru-pt">Русский → Португальский</option>
-      </select>
-      <button onclick="startTest()">▶️ Начать</button>
-      <div class="test-area" id="testArea">
-        <div id="questionText" style="margin-bottom: 10px; font-size: 18px; font-weight: bold;"></div>
-        <input type="text" id="answerInput" placeholder="Введите перевод">
-        <button onclick="checkAnswer()">Проверить</button>
-        <button onclick="showHint()">🔍 Подсказка</button>
-        <button onclick="speakWord()">🔊 Произнести</button>
-        <div class="test-feedback" id="feedback"></div>
-        <button class="next-btn" onclick="nextQuestion()" id="nextBtn">Следующее слово</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    let words = JSON.parse(localStorage.getItem('words') || '[]');
-    let currentQuestion = null;
-    let testDirection = 'pt-ru';
-    let scoresMap = localStorage.getItem('scores');
-    let scores = scoresMap ? JSON.parse(scoresMap) : {};
-
-    // Переключение темы
-    document.getElementById('themeSwitch').addEventListener('change', function() {
-      document.body.classList.toggle('dark-mode', this.checked);
-    });
-
-    // Фильтрация слов
-    function filterWords() {
-      const filter = document.getElementById('searchInput').value.toLowerCase();
-      const canvas = document.getElementById('wordCanvas');
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      words.forEach((word, i) => {
-        if (word.pt.toLowerCase().includes(filter) || word.ru.toLowerCase().includes(filter)) {
-          ctx.font = "20px Arial";
-          ctx.fillText(`${word.pt} - ${word.ru}`, 10, 30 * (i + 1));
-        }
-      });
-    }
-
-    // Очистка поиска
-    function clearSearch() {
-      document.getElementById('searchInput').value = '';
-      filterWords();
-    }
-
-    function saveWords() {
-      localStorage.setItem('words', JSON.stringify(words));
-      localStorage.setItem('scores', JSON.stringify(scores));
-      renderWords();
-    }
-
-    function addWord() {
-      const pt = document.getElementById('ptWord').value.trim();
-      const ru = document.getElementById('ruWord').value.trim();
-      if (pt && ru) {
-        words.push({ pt, ru });
-        scores[pt] = 0;
-        saveWords();
-        document.getElementById('ptWord').value = '';
-        document.getElementById('ruWord').value = '';
-      }
-    }
-
-    function renderWords() {
-      const canvas = document.getElementById('wordCanvas');
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      words.forEach((word, i) => {
-        ctx.font = "20px Arial";
-        ctx.fillText(`${word.pt} - ${word.ru}`, 10, 30 * (i + 1));
-      });
-    }
-
-    function startTest() {
-      if (words.length === 0) return;
-      testDirection = document.getElementById('testMode').value;
-      document.getElementById('testArea').style.display = 'block';
-      nextQuestion();
-    }
-
-    function getWeightedWord() {
-      const weighted = [];
-      words.forEach(word => {
-        const score = scores[word.pt] || 0;
-        const weight = Math.max(1, 5 - score);
-        for (let i = 0; i < weight; i++) weighted.push(word);
-      });
-      return weighted[Math.floor(Math.random() * weighted.length)];
-    }
-
-    function nextQuestion() {
-      currentQuestion = getWeightedWord();
-      document.getElementById('feedback').textContent = '';
-      document.getElementById('answerInput').value = '';
-      document.getElementById('nextBtn').style.display = 'none';
-
-      const q = testDirection === 'pt-ru' ? currentQuestion.pt : currentQuestion.ru;
-      document.getElementById('questionText').textContent = `Переведите: ${q}`;
-    }
-
-    function checkAnswer() {
-      const userAnswer = document.getElementById('answerInput').value.trim().toLowerCase();
-      const correct = testDirection === 'pt-ru' ? currentQuestion.ru.toLowerCase() : currentQuestion.pt.toLowerCase();
-      const feedback = document.getElementById('feedback');
-      if (userAnswer === correct) {
-        feedback.textContent = '✅ Верно!';
-        feedback.className = 'test-feedback correct';
-        scores[currentQuestion.pt] = (scores[currentQuestion.pt] || 0) + 1;
-      } else {
-        feedback.textContent = `❌ Неверно. Правильный ответ: ${correct}`;
-        feedback.className = 'test-feedback incorrect';
-        scores[currentQuestion.pt] = Math.max(0, (scores[currentQuestion.pt] || 0) - 1);
-      }
-      saveWords();
-      document.getElementById('nextBtn').style.display = 'inline-block';
-    }
-
-    function showHint() {
-      const answer = testDirection === 'pt-ru' ? currentQuestion.ru : currentQuestion.pt;
-      document.getElementById('feedback').textContent = `🔍 Первая буква: ${answer[0]}`;
-      document.getElementById('feedback').className = 'test-feedback hint';
-    }
-
-    function speakWord() {
-      const utter = new SpeechSynthesisUtterance(currentQuestion.pt);
-      utter.lang = testDirection === 'pt-ru' ? 'pt-BR' : 'ru-RU';
-      speechSynthesis.speak(utter);
-    }
-
-    renderWords();
-  </script>
-</body>
-</html>
+  );
+}
