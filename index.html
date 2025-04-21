@@ -6,24 +6,34 @@
   <title>Portuguese Words Trainer</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="manifest.json" />
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js');
-      });
-    }
-  </script>
 </head>
 <body>
-  <div class="app">
-    <h1>Portuguese Words Trainer 🇵🇹 ➜ 🇷🇺</h1>
-    <div class="input-group">
-      <input type="text" id="pt-word" placeholder="Portuguese word">
-      <input type="text" id="ru-word" placeholder="Russian translation">
+  <div class="container">
+    <h1>🇵🇹 Portuguese Words Trainer 🇷🇺</h1>
+    <div class="add-word">
+      <input id="pt-word" placeholder="Portuguese word" />
+      <input id="ru-word" placeholder="Russian translation" />
       <button onclick="addWord()">Add</button>
     </div>
-    <input type="text" id="search" placeholder="Search..." oninput="renderWords()" />
-    <div id="word-list"></div>
+    <input id="search" placeholder="Search..." oninput="renderWords()" />
+    <div id="word-list" class="word-list"></div>
+
+    <div class="test-controls">
+      <label><input type="radio" name="test-direction" value="pt-ru" checked /> 🇵🇹 ➜ 🇷🇺</label>
+      <label><input type="radio" name="test-direction" value="ru-pt" /> 🇷🇺 ➜ 🇵🇹</label>
+      <button onclick="startTest()">Start Test</button>
+    </div>
+
+    <div id="test-container" style="display:none;">
+      <h3 id="test-question"></h3>
+      <input id="test-answer" placeholder="Your answer..." onkeydown="if(event.key==='Enter')checkAnswer()" />
+      <div class="test-buttons">
+        <button onclick="checkAnswer()">Check</button>
+        <button onclick="showHint()">Hint</button>
+        <button onclick="speakWord()">🔊 Speak</button>
+      </div>
+      <div id="test-feedback" class="feedback"></div>
+    </div>
   </div>
   <script src="script.js"></script>
 </body>
