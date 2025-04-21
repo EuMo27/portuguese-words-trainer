@@ -1,0 +1,35 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #f0f0f0;
+  color: #333;
+}
+.app {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+h1 {
+  text-align: center;
+}
+.input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+}
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+}
+.word-card {
+  background: white;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
